@@ -34,3 +34,6 @@ ckpts*
 
 # Demo
 server_logs/
+
+curtemp/
+datasets/

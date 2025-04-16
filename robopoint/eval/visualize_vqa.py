@@ -49,12 +49,12 @@ def word_wrap(s, n):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--answer_files", nargs='+')
-    parser.add_argument("--labels", nargs='+')
-    parser.add_argument("--data_dir", default="/home/wentaoy/datasets/where2place")
+    parser.add_argument("--answer_files", nargs='+', default=["output/robopoint-v1-vicuna-v1.5-13b.jsonl"])
+    parser.add_argument("--labels", nargs='+', default=["robopoint"])
+    parser.add_argument("--data_dir", default="datasets/where2place")
     parser.add_argument("--question_file", default="point_questions.jsonl")
     parser.add_argument("--num_questions", type=int)
-    parser.add_argument("--output_dir")
+    parser.add_argument("--output_dir", default="curtemp")
     args = parser.parse_args()
 
     with open(f"{args.data_dir}/{args.question_file}", 'r') as file:
