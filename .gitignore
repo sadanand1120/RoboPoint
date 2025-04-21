@@ -27,7 +27,7 @@ checkpoints
 ckpts*
 
 .ipynb_checkpoints
-*.ipynb
+# *.ipynb
 
 # DevContainer
 !.devcontainer/*
@@ -37,3 +37,7 @@ server_logs/
 
 curtemp/
 datasets/
+**/.vscode
+**/.clang-format
+**/*notrack*
+**/*notrack*/

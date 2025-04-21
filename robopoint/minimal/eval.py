@@ -3,7 +3,7 @@ from tqdm import tqdm
 import json
 import numpy as np
 import re
-from minimal.generate import text2pixels
+from robopoint.minimal.utils import text2pixels
 
 
 if __name__ == '__main__':
