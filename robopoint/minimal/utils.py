@@ -22,7 +22,7 @@ def prepare_multimodal_inputs_simplified(model, input_ids, image_features):
                       `model.get_model().embed_tokens` and `model.config`)
     input_ids       : LongTensor of shape (B, L)
     image_features  : sequence of FloatTensors produced by the vision
-                      tower; consumed in the order the image‑tokens appear
+                      tower; consumed in the order the image-tokens appear
 
     Returns
     -------
@@ -33,7 +33,6 @@ def prepare_multimodal_inputs_simplified(model, input_ids, image_features):
     embed_tokens = model.get_model().embed_tokens
     pad_side = getattr(model.config, "tokenizer_padding_side", "right")
     max_len_cfg = getattr(model.config, "tokenizer_model_max_length", None)
-    print(f"********************************** pad_side: {pad_side}, max_len_cfg: {max_len_cfg}")
 
     batch_embeds = []
     img_ptr = 0
@@ -113,7 +112,10 @@ def get_chunk(lst, n, k):
 
 
 def plot_points_on_image(image_path, answer, save_path='output.png'):
-    img = Image.open(image_path)
+    if isinstance(image_path, str):
+        img = Image.open(image_path).convert('RGB')
+    else:
+        img = image_path.convert('RGB')
     width, height = img.size
     points = text2pixels(answer, width, height)
 

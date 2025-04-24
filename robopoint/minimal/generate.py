@@ -19,7 +19,20 @@ from robopoint.minimal.utils import text2pixels, plot_points_on_image, prepare_m
 
 
 @torch.inference_mode()
-def process_one(image_path: str, qs: str, tokenizer, image_processor, model, conv_mode, temperature, num_beams):
+def get_image_features(image_path: str, image_processor, model):
+    if type(image_path) == str:
+        image = Image.open(image_path).convert('RGB')
+    else:
+        image = image_path.convert('RGB')
+    image_tensor = process_images([image], image_processor, model.config)[0]
+    images = image_tensor.unsqueeze(0).half().cuda()                    # 1, 3, 336, 336
+    image_features = model.get_model().get_vision_tower()(images)       # 1, 576 (24*24 patches), 1024
+    image_features = model.get_model().mm_projector(image_features)     # 1, 576, 5120
+    return image_features
+
+
+@torch.inference_mode()
+def process_one(image_path: str, qs: str, tokenizer, image_processor, model, conv_mode, temperature, num_beams, image_features=None):
     if DEFAULT_IMAGE_TOKEN not in qs:
         if model.config.mm_use_im_start_end:
             qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + qs
@@ -31,11 +44,8 @@ def process_one(image_path: str, qs: str, tokenizer, image_processor, model, con
     prompt = conv.get_prompt()
     input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()   # 1, 142
 
-    image = Image.open(image_path).convert('RGB')
-    image_tensor = process_images([image], image_processor, model.config)[0]
-    images = image_tensor.unsqueeze(0).half().cuda()                    # 1, 3, 336, 336
-    image_features = model.get_model().get_vision_tower()(images)       # 1, 576 (24*24 patches), 1024
-    image_features = model.get_model().mm_projector(image_features)     # 1, 576, 5120
+    if image_features is None:
+        image_features = get_image_features(image_path, image_processor, model)  # 1, 576, 5120
 
     inputs_embeds = prepare_multimodal_inputs_simplified(model, input_ids, image_features)
 
@@ -66,7 +76,7 @@ def process_one(image_path: str, qs: str, tokenizer, image_processor, model, con
 
 if __name__ == "__main__":
     model_path = "wentao-yuan/robopoint-v1-vicuna-v1.5-13b"
-    image_path = "chairs.png"
+    image_path = "/robodata/smodak/repos/RoboPoint/chairs.png"
     question = "Identify locations on the floor in the vacant space between the two chairs. Your answer should be formatted as a list of tuples, i.e. [(x1, y1), (x2, y2), ...], where each tuple contains the x and y coordinates of a point satisfying the conditions above. The coordinates should be between 0 and 1, indicating the normalized pixel locations of the points in the image. Return empty list if no such points exist."
 
     tokenizer, model, image_processor, context_len = load_pretrained_model(
